@@ -1,0 +1,30 @@
+name: Terraform Sync Only
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    env:
+      TARGET_HOST: 192.168.11.150
+      TARGET_DIR: /home/akihiko/terraform
+      SSH_USER: akihiko
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup SSH known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H $TARGET_HOST >> ~/.ssh/known_hosts
+
+      - name: Sync Terraform files
+        run: |
+          rsync -avz --delete \
+            -e "ssh" \
+            ./ ${SSH_USER}@${TARGET_HOST}:${TARGET_DIR}/
